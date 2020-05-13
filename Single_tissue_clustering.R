@@ -89,12 +89,12 @@ all_markers$gene <- unlist(mapply(rownames, result))
 all_markers$cluster <- rep(levels(tissue@active.ident), times = mapply(dim, result, SIMPLIFY = TRUE)[1,])
 tissue.markers <- all_markers
 
-tissue.markers %>% group_by(cluster) %>% top_n(n = 50, wt = avg_logFC) -> top50
+tissue.markers %>% group_by(cluster) %>% TOP_N(n = 50, wt = avg_logFC) -> top50
 write.table(top50, paste0(ags, "top50.csv"), sep = ",", row.names = T, quote = F)
 write.table(tissue.markers, paste0(ags, ".csv"), sep = ",", row.names = T, quote = F)
 
 #7. plot the heat map
-tissue.markers %>% group_by(cluster) %>% top_n(n = 10, wt = avg_logFC) -> top10
+tissue.markers %>% group_by(cluster) %>% TOP_N(n = 10, wt = avg_logFC) -> top10
 pdf(paste0(tissuename, "_", dim.use, "_", res.use,"_heatmap.pdf"), width = 14, height = 7)
 DoHeatmap(object = tissue, features = top10$gene, size = 2) + NoLegend() +
   theme(axis.text.x = element_text(size = 3),

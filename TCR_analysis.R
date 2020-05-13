@@ -192,6 +192,7 @@ tmp <- as.vector(t(uppertri))
 weight <- tmp[!((tmp == 10)|(tmp == 0)) ]
 
 #########----------------------------4. ploting the TCR sharing across organs-----------------------------------------------------##
+
 E(cluster.gr)$weight <- weight
 
 E(cluster.gr)$width <- E(cluster.gr)$weight/6
@@ -215,6 +216,7 @@ dev.off()
 
 
 #####-----------------------------------------5. TCR tracking analysis across subclusters--------------------------------##
+
 TCR <- T_cell_clone_uniq %>% ### the input "T_cell_clone_uniq" was generated from step 1 above.
   select(c(cell_barcode, raw_clonotype_id, Tissue)) %>%
   mutate(patient = Tissue, loc = Tissue,
@@ -336,4 +338,63 @@ ggplot(results, aes(x = cluster,  fill = clone_numbers)) +
   scale_fill_discrete(name = "Clonality", labels = c("Clonal", "Duplicated", "Unique"))
 dev.off()
 
+#########------------------------8. TCR sharing across organs and clusters -----------------------------------------############
 
+# load("subset_T_meta.data.RData")
+metdata <- T_cells_meta.data ## T_cell_clone_uniq: the input "T_cell_clone_uniq" was generated from step 1 above.
+T_cell_clone_uniq <- T_cell_clone_uniq %>% subset(!(annotation %in% grep(T_cell_clone_uniq$annotation, pattern = "TGD", value = T)))
+clo_cells <- T_cell_clone_uniq$cell_barcode
+clone_metdat <- metdata[row.names(metdata) %in% clo_cells, ]
+
+clone_metdat$raw_clonotype_id <- mapvalues(rownames(clone_metdat), from = T_cell_clone_uniq$cell_barcode, to = T_cell_clone_uniq$raw_clonotype_id) 
+size_of_col_type <- sort(table(clone_metdat %>% subset$raw_clonotype_id), decreasing = T)
+
+dat_to_plot <- clone_metdat[ ,c("orig.ident", "annotation", "raw_clonotype_id", "Color_of_tissues")]
+
+clone_tissue <- unclass(t(table(dat_to_plot[, c(1, 3)])))
+shared_clone_frequence <- lapply(1:(dim(clone_tissue)[1]), FUN = function(x) {result <- table(as.numeric(clone_tissue[x, ]) > 0)[2]})
+shared_clone_frequences <- do.call(rbind, shared_clone_frequence)
+row.names(shared_clone_frequences) <- row.names(clone_tissue)
+shared_clone_frequences <- data.frame(clones = row.names(shared_clone_frequences), Freq = unname(shared_clone_frequences))
+shared_clone_frequences <- shared_clone_frequences[order(shared_clone_frequences$Freq, decreasing = T), ]
+
+dat <- data.frame(table(dat_to_plot[, c(1:3)]))
+dat <- dat[!(dat$orig.ident == "Testis"), ]
+
+col_fre_larger_than_x <- shared_clone_frequences[shared_clone_frequences$Freq >= 8, "clones"]
+dat1 <- dat[dat$raw_clonotype_id %in% col_fre_larger_than_x, ]
+
+dat1$cols_of_tissue <- mapvalues(as.character(dat1$orig.ident),
+                                 from = unique(as.character(clone_metdat$orig.ident)),
+                                 to = unique(as.character(clone_metdat$Color_of_tissues) ))
+
+dat1$raw_clonotype_id <- factor(as.character(dat1$raw_clonotype_id),
+                                levels = names(size_of_col_type)[sort(match(x = unique(as.character(dat1$raw_clonotype_id)),
+                                                                            table = names(size_of_col_type)), decreasing = F)])
+###---order the tissues
+order_of_tissues <- dat1 %>% subset(Freq > 0) %>% group_by(orig.ident) %>% dplyr::summarise(., total = sum(Freq))
+order_of_tissues <- order_of_tissues[order(order_of_tissues$total, decreasing = T), ] %>% `[`(1)  %>%  unlist %>% as.character
+dat1 <- dat1 %>% subset(orig.ident %in% order_of_tissues)
+dat1$orig.ident <- factor(dat1$orig.ident %>% as.character, levels = order_of_tissues)
+
+###---order the Clusters
+order_of_clusters <- dat1 %>% subset(Freq > 0) %>% group_by(annotation) %>% dplyr::summarise(., total = sum(Freq))
+order_of_clusters <- order_of_clusters[order(order_of_clusters$total, decreasing = T), ] %>% `[`(1) %>%  unlist %>% as.character
+dat1 <- dat1 %>% subset(annotation %in% order_of_clusters)
+dat1$annotation <- factor(dat1$annotation %>% as.character, levels = order_of_clusters) 
+
+
+png("TCR_share_across_organs_and_cell_types_CD8_with_legend.png", width = 20, height = 20, res = 500, units = "in")
+ggplot(data = dat1[, ],
+       aes(axis1 = raw_clonotype_id, axis2 = orig.ident, axis3 = annotation, y = Freq)) +
+  scale_x_discrete(limits = c("raw_clonotype_id", "orig.ident", "annotation"), expand = c(.1, .05)) +
+  xlab("Demographic") + 
+  geom_alluvium(aes(fill = orig.ident)) +
+  geom_stratum() +             
+  geom_text(stat = "stratum", label.strata = T, check_overlap = T, size = 6) +
+  theme_minimal() +
+  # scale_fill_manual(values = as.character(unique(dat1$cols_to_use)[match(x = levels(dat1$T_subtype), table = unique(dat1$T_subtype))])) +
+  scale_fill_manual(values = c(tissues_colors[match(levels(dat1$orig.ident), tissues_colors %>% names)]) %>% unname) +
+  ggtitle("TCR_share_across_organs_and_cell_types") +
+  theme(legend.position = "none")
+dev.off()

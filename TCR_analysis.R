@@ -167,7 +167,7 @@ cluster.gr <- igraph::graph_from_adjacency_matrix(shared_m/sum(shared_m),
                                                   mode="undirected", weighted=TRUE, diag=FALSE)
 
 
-##------------------3. calculate the sharing weight----------------###
+##------------------3. calculate the sharing weight (TCR tracking analysis across organs)----------------###
 
 TCR <- T_cell_clone_uniq %>% ### the input "T_cell_clone_uniq" was generated from step 1 above. 
   select(c(cell_barcode, raw_clonotype_id, Tissue)) %>%
@@ -191,7 +191,7 @@ uppertri <- as.matrix(uppertri)
 tmp <- as.vector(t(uppertri))
 weight <- tmp[!((tmp == 10)|(tmp == 0)) ]
 
-#########----------------------------4. ploting-----------------------------------------------------
+#########----------------------------4. ploting the TCR sharing across organs-----------------------------------------------------
 E(cluster.gr)$weight <- weight
 
 E(cluster.gr)$width <- E(cluster.gr)$weight/6
@@ -212,3 +212,115 @@ pt <- plot(cluster.gr,
            vertex.label.cex	= 1,
            layout = layout_in_circle(cluster.gr))
 dev.off()
+
+
+#####-----------------------------------------5. TCR tracking analysis across subclusters--------------------------------
+TCR <- T_cell_clone_uniq %>% ### the input "T_cell_clone_uniq" was generated from step 1 above.
+  select(c(cell_barcode, raw_clonotype_id, Tissue)) %>%
+  mutate(patient = Tissue, loc = Tissue,
+         Tissue = mapvalues(cell_barcode, from = row.names(T_cells_meta.data), to = T_cells_meta.data$annotation) ) %>% 
+  setnames(old = c("cell_barcode", "raw_clonotype_id", "Tissue"), new = c("Cell_Name", "clone.id", "majorCluster"))
+
+obj <- new("Startrac", TCR, aid = "HCA")
+obj <- calIndex(obj)
+# tic("pIndex")
+obj <- pIndex(obj)
+
+obj@pIndex.tran[is.na(obj@pIndex.tran)] <- 0
+
+migration_across_tissue <- obj@pIndex.tran %>% select(-c(1:2)) 
+row.names(migration_across_tissue) <- colnames(migration_across_tissue)
+
+pdf("heatmap_transition_across_clusters_CD8.pdf", width = 15, height = 15)
+pheatmap::pheatmap(migration_across_tissue,
+                   # color = colorRampPalette(c("navy", "white", "firebrick3"))(100),
+                   # breaks = seq(0, 1, length.out = 100),
+                   treeheight_row = 8,
+                   treeheight_col = 8,
+                   border_color = "white",
+                   # cellwidth = 20,
+                   # cellheight = 5,
+                   scale = "none",
+                   cluster_rows = T,
+                   cluster_cols = T,
+                   fontsize_row  = 5,
+                   fontsize_col = 5,
+                   # annotation_col = annotation_cols,
+                   # annotation_colors = ann_colors,
+                   show_colnames = T,
+                   width = 10,
+                   height = 14 
+)
+dev.off()
+
+
+###-----------------------------6. distribution of T clonetyps across organs------------------
+
+TCR_clone_dat <- T_cell_clone_uniq %>% ### the input "T_cell_clone_uniq" was generated from step 1 above.
+  select(c(Tissue, cell_barcode, raw_clonotype_id)) %>%
+  mutate(cluster = mapvalues(cell_barcode, from = row.names(T_cells_meta.data), to = T_cells_meta.data$annotation) ) %>% unique
+
+group_by_tissue <- by(TCR_clone_dat, TCR_clone_dat$Tissue, FUN = function(x) { `[`(x) })
+
+result <- lapply(1:length(group_by_tissue), FUN = function(x, dat) {
+  clone_number <- split(1:(dim(dat[[x]])[1]), dat[[x]]$raw_clonotype_id) %>%
+    lapply(FUN = length) %>%
+    do.call(what = rbind) %>%
+    as.data.frame()
+  clone_number[clone_number$V1 >= 3, ] <- 3
+  dat[[x]]$clone_numbers <- mapvalues(dat[[x]]$raw_clonotype_id, from = row.names(clone_number), to = clone_number$V1)
+  return(dat[[x]])
+}, dat = group_by_tissue)
+
+results <- do.call(result, what = rbind)
+results$clone_numbers <- factor(results$clone_numbers, levels = c(3, 2, 1))
+
+pdf("TCR_clone_structures_across_tissue_CD4.pdf", width = 15, height = 7)
+ggplot(results, aes(x = Tissue,  fill = clone_numbers)) +
+  geom_bar(stat = "count") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+  scale_y_continuous(expand = c(0.005, 0.1)) +
+  scale_fill_discrete(name = "Clonality", labels = c("Clonal", "Duplicated", "Unique"))
+dev.off()
+
+###-----------------------------6. distribution of T clonetyps across clusters------------------
+TCR_clone_dat <- T_cell_clone_uniq %>% ### the input "T_cell_clone_uniq" was generated from step 1 above.
+  select(c(Tissue, cell_barcode, raw_clonotype_id)) %>%
+  mutate(cluster = mapvalues(cell_barcode, from = row.names(T_cells_meta.data), to = T_cells_meta.data$T_subtype) )  %>% unique
+
+group_by_tissue <- by(TCR_clone_dat, TCR_clone_dat$cluster, FUN = function(x) { `[`(x) })
+
+result <- lapply(1:length(group_by_tissue), FUN = function(x, dat) {
+  clone_number <- split(1:(dim(dat[[x]])[1]), dat[[x]]$raw_clonotype_id) %>%
+    lapply(FUN = length) %>%
+    do.call(what = rbind) %>%
+    as.data.frame()
+  clone_number[clone_number$V1 >= 3, ] <- 3
+  dat[[x]]$clone_numbers <- mapvalues(dat[[x]]$raw_clonotype_id, from = row.names(clone_number), to = clone_number$V1)
+  return(dat[[x]])
+}, dat = group_by_tissue)
+
+results <- do.call(result, what = rbind)
+results$clone_numbers <- factor(results$clone_numbers, levels = c(3, 2, 1))
+results$cluster <- factor(results$cluster, levels = c('LINC00861_Naive', 
+                                                      'STMN1_TCM', 
+                                                      'KLF2_TCM', 
+                                                      'LTB_TEM', 
+                                                      'CTLA4_Treg', 
+                                                      'TNF_TRM', 
+                                                      'MT1X_TRM', 
+                                                      'TRBV12-3_TRM', 
+                                                      'RGS1_TRM', 
+                                                      'GADD45B_TRM', 
+                                                      'NKG7_TEFF'
+))
+
+pdf("TCR_clone_structures_across_clusters_CD4.pdf", width = 15, height = 7)
+ggplot(results, aes(x = cluster,  fill = clone_numbers)) +
+  geom_bar(stat = "count") + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+  scale_y_continuous(expand = c(0.005, 0.1)) +
+  scale_fill_discrete(name = "Clonality", labels = c("Clonal", "Duplicated", "Unique"))
+dev.off()
+
+

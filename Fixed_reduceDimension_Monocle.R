@@ -1,9 +1,7 @@
 ## monocle version 2.99
 
-fixed_reduceDimension <- function (cds, max_components = 2, reduction_method = c("UMAP", 
-    "DDRTree"), auto_param_selection = TRUE, scaling = TRUE, 
-    verbose = TRUE, ...) 
-{
+fixed_reduceDimension <- function (cds, max_components = 2, reduction_method = c("UMAP", "DDRTree"), auto_param_selection = TRUE, scaling = TRUE, 
+    verbose = TRUE, ...){
     extra_arguments <- list(...)
     set.seed(2016)
     if (verbose) 

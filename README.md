@@ -9,14 +9,14 @@ We performed single-cell transcriptomes of 88,622 638 cells derived from 15 tiss
 ##### Conclusions: 
 The AHCA reveals the inter- and intra-organ heterogeneity of cell characteristics and provides a useful resource to uncover key events during the development of human diseases such as the recent outbreak of coronavirus disease 2019 (COVID-19) in the context of heterogeneity of cells and organs.
 
-## Install the R package monocle 2.99
-Please download the R package monocle 2.99 in the folder `scRNA-AHCA/Data For Ploting/cole-trapnell-lab-monocle-release-2.99.tar.gz`.
+## Install the R package monocle V2.99
+Please download the R package monocle V2.99 in the folder `scRNA-AHCA/Data For Ploting/cole-trapnell-lab-monocle-release-2.99.tar.gz`.
 
-## Install CellPhoneDB
-Please download and install the CellPhoneDB in the website [`https://github.com/Teichlab/cellphonedb`](https://github.com/Teichlab/cellphonedb).
+## Install CellPhoneDB V2
+Please download and install the CellPhoneDB V2 at [`https://github.com/Teichlab/cellphonedb`](https://github.com/Teichlab/cellphonedb).
  
 ## Install SCENIC
-Please download and install the SCENIC in the website [`https://github.com/aertslab/SCENIC`](https://github.com/aertslab/SCENIC).
+Please download and install the SCENIC at [`https://github.com/aertslab/SCENIC`](https://github.com/aertslab/SCENIC).
 
 ## AHCA Website
 We developed an HCA website for international users at [`http://research.gzsums.net:8888`](http://research.gzsums.net:8888).

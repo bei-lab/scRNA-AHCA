@@ -19,7 +19,7 @@ Please download and install the CellPhoneDB V2 at [`https://github.com/Teichlab/
 Please download and install the SCENIC at [`https://github.com/aertslab/SCENIC`](https://github.com/aertslab/SCENIC).
 
 ## AHCA Website
-We developed an HCA website for international users at [`http://research.gzsums.net:8888`](http://research.gzsums.net:8888).
+We developed an AHCA website for international users at [`http://research.gzsums.net:8888`](http://research.gzsums.net:8888).
 
  
  

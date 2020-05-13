@@ -12,3 +12,13 @@ Please download the R package monocle 2.99 in the folder `scRNA-AHCA/Data For Pl
 
 ## Install CellPhoneDB
  Please download and install the CellPhoneDB in the websit [https://github.com/Teichlab/cellphonedb](https://github.com/Teichlab/cellphonedb).
+ 
+ ## Install SCENIC
+ Please download and install the SCENIC in the websit [https://github.com/aertslab/SCENIC](https://github.com/aertslab/SCENIC).
+ 
+ 
+ 
+ 
+ 
+ 
+ 

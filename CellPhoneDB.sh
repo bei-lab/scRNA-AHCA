@@ -1,3 +1,4 @@
+## cellphonedb version 2.0
 cellphonedb method statistical_analysis \
        --project-name tissue \
        --iterations 1000 \

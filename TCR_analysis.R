@@ -302,17 +302,29 @@ result <- lapply(1:length(group_by_tissue), FUN = function(x, dat) {
 
 results <- do.call(result, what = rbind)
 results$clone_numbers <- factor(results$clone_numbers, levels = c(3, 2, 1))
-results$cluster <- factor(results$cluster, levels = c('LINC00861_Naive', 
-                                                      'STMN1_TCM', 
-                                                      'KLF2_TCM', 
-                                                      'LTB_TEM', 
-                                                      'CTLA4_Treg', 
-                                                      'TNF_TRM', 
-                                                      'MT1X_TRM', 
-                                                      'TRBV12-3_TRM', 
-                                                      'RGS1_TRM', 
-                                                      'GADD45B_TRM', 
-                                                      'NKG7_TEFF'
+results$cluster <- factor(results$cluster, levels = c('KLF2_CD8_Naive', 
+                                                      'CCR7_CD8_Naive', 
+                                                      'LEF1_CD8_TCM', 
+                                                      'GZMK_CD8_TEM', 
+                                                      'CST7_CD8_TEM', 
+                                                      'MT2A_CD8_TEFF', 
+                                                      'TRAV29DV5_CD8_TEFF',
+                                                      'GNLY_CD8_TEFF', 
+                                                      "TRBV4-2_CD8_TEFF",
+                                                      'PRR4_CD8_TRM', 
+                                                      'HSPA1A_CD8_TRM', 
+                                                      'IFNG_CD8_TRM', 
+                                                      'GZMB_CD8_TRM', 
+                                                      'H2AFZ_CD8_TRM', 
+                                                      'TRBV2_CD8_TRM', 
+                                                      'STMN1_CD8_High_pro_TRM', 
+                                                      'NEAT1_CD8_TRM', 
+                                                      'MT1X_CD8_IEL', 
+                                                      'TRBV7-9_CD8_IEL', 
+                                                      'LTB_CD8_MAIT', 
+                                                      'CCL20_CD8_MAIT', 
+                                                      'TRDV2_CD8_TGD', 
+                                                      'TRDV1_CD8_TGD'
 ))
 
 pdf("TCR_clone_structures_across_clusters_CD4.pdf", width = 15, height = 7)

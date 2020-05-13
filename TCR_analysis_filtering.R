@@ -41,6 +41,7 @@ tissues_colors <- c(    "Common.bile.duct" = '#1f77b4',
                         # x5 = '#00acff',
                         # x6 = '#ccacff'
 )
+
 tissus_to_numbers <- c( "Common.bile.duct" = 1,
                         Bladder = 1,
                         Blood = 1,
@@ -70,7 +71,7 @@ tissus_to_numbers <- c( "Common.bile.duct" = 1,
 
 ##----------------Step 1. Identify T cell with paired A and B chains.-------####
 #######################################--------------------------------------################################S
-number_to_tissue <- read.table("number_corresponding_tissue_BCR.txt", header = F, col.names = c("Number", "Tissue"), stringsAsFactors = F)
+number_to_tissue <- read.table("number_corresponding_tissue_TCR.txt", header = F, col.names = c("Number", "Tissue"), stringsAsFactors = F)
 T_cells_meta.data <- read.table("CD8_meta.data.csv", header = T, row.names = 1, sep = "\t", stringsAsFactors = F, comment.char = "")
 
 #################
@@ -122,7 +123,9 @@ qualited_T_cells <- lapply(barcodes_cells, FUN = function(x){
   }
 }) %>% do.call(rbind, .)
 
-T_cell_clone_uniq <- T_cell_clone_uniq[T_cell_clone_uniq$cell_barcode %in% qualited_T_cells, ]
+####----------the result of this step (T_cell_clone_uniq) was used as the input to identify sharing weight.------------######
+T_cell_clone_uniq <- T_cell_clone_uniq[T_cell_clone_uniq$cell_barcode %in% qualited_T_cells, ] 
+#########################################################################################################
 
 ###------------------remove non T cells TCR----------------------------#####################
 T_cell_clone_uniq <- filter(T_cell_clone_uniq, cell_barcode %in% row.names(T_cells_meta.data)) ## 5560 T cells (2402 clones)  with certain clone type and paired A and B chain
@@ -130,3 +133,82 @@ T_cell_clone_uniq$annotation <- mapvalues(T_cell_clone_uniq$cell_barcode,
                                           from = T_cells_meta.data %>% row.names,
                                           to = T_cells_meta.data$annotation)
 
+##----------------Step 2. TCR sharing across organs.--------------------------------####
+
+
+##remove none clone cells
+T_cell_clone_uniq_each <- T_cell_clone_uniq[ !duplicated(T_cell_clone_uniq$"cell_barcode"), ]
+duplicated_clones <- names(table(T_cell_clone_uniq_each$raw_clonotype_id)[unname(table(T_cell_clone_uniq_each$raw_clonotype_id))>= 2])
+T_cell_clone_uniq <- T_cell_clone_uniq[T_cell_clone_uniq$raw_clonotype_id %in% duplicated_clones, ] ## 438 cells, 106 clones
+
+T_cell_clone_uniq_sorted <- T_cell_clone_uniq %>% arrange(Tissue, raw_clonotype_id, Barcode) %>% dplyr::select(Barcode, raw_clonotype_id, Tissue)
+T_cell_clone_uniq_sorted_h_2_low <- with(T_cell_clone_uniq_sorted, 
+                                         lapply(unique(Tissue), function(x, dat){
+                                           ord <- match(dat[dat$Tissue == x, "raw_clonotype_id"], 
+                                                        names(sort(table(dat[dat$Tissue == x, "raw_clonotype_id"]), decreasing = T)))
+                                           each_ordered <- dat[dat$Tissue == x, ][order(ord), ]
+                                         }, dat = T_cell_clone_uniq_sorted))
+
+T_cell_clone_sort_h_2_l <- do.call(rbind, T_cell_clone_uniq_sorted_h_2_low)
+matrix_cor_expression <- with(T_cell_clone_sort_h_2_l, lapply(1:dim(T_cell_clone_sort_h_2_l)[1], 
+                                                              function(x){(raw_clonotype_id %in% raw_clonotype_id[x])+0 }))
+Cor_T_matrix <- do.call(cbind, matrix_cor_expression)
+
+row.names(Cor_T_matrix) <- T_cell_clone_sort_h_2_l$Tissue
+colnames(Cor_T_matrix) <- T_cell_clone_sort_h_2_l$Tissue
+
+shared_matrix <- unclass(with(T_cell_clone_sort_h_2_l,table(raw_clonotype_id, Tissue)))
+# write.table(shared_matrix, "clone_type_numbers_in_each_tissue_of_CD4.txt", sep = "\t", col.names = T, row.names = T, quote = F)
+shared_matrix[ shared_matrix > 0 ] <- 1
+
+shared_m <- t(shared_matrix) %*% (shared_matrix)
+
+cluster.gr <- igraph::graph_from_adjacency_matrix(shared_m/sum(shared_m), 
+                                                  mode="undirected", weighted=TRUE, diag=FALSE)
+
+
+##------------------3. calculate the sharing weight----------------###
+
+TCR <- T_cell_clone_uniq %>% ### the input "T_cell_clone_uniq" was generated from step 1 above. 
+  select(c(cell_barcode, raw_clonotype_id, Tissue)) %>%
+  mutate(patient = mapvalues(Tissue, from = names(tissus_to_numbers), to = unname(tissus_to_numbers)), loc = Tissue) %>% 
+  setnames(old = c("cell_barcode", "raw_clonotype_id", "Tissue"), new = c("Cell_Name", "clone.id", "majorCluster"))
+
+obj <- new("Startrac", TCR, aid = "HCA")
+obj <- calIndex(obj)
+# tic("pIndex")
+obj <- pIndex(obj)
+
+obj@pIndex.tran[is.na(obj@pIndex.tran)] <- 0
+
+migration_across_tissue <- obj@pIndex.tran %>% select(-c(1:2)) 
+row.names(migration_across_tissue) <- colnames(migration_across_tissue)
+pheatmap::pheatmap(migration_across_tissue)
+
+uppertri <- migration_across_tissue
+uppertri[!upper.tri(uppertri)] <- 10
+uppertri <- as.matrix(uppertri)
+tmp <- as.vector(t(uppertri))
+weight <- tmp[!((tmp == 10)|(tmp == 0)) ]
+
+#########---------------------------------------------------------------------------------
+E(cluster.gr)$weight <- weight
+
+E(cluster.gr)$width <- E(cluster.gr)$weight/6
+E(cluster.gr)$width <- 1+E(cluster.gr)$weight/8
+
+V(cluster.gr)$size <- c(T_cell_clone_uniq[ !duplicated(T_cell_clone_uniq$"cell_barcode"), ]$Tissue %>% table()) %>% log2
+V(cluster.gr)$frame.color <- unname(tissues_colors)[match(x = names(V(cluster.gr)), table = names(tissues_colors))]
+# V(cluster.gr)$color <- tissues_colors[c(1:17,19)]
+
+# png("Tissue_TCR_shared_network_CD4.png", height = 10, width = 10, res = 400, units = "in")
+pdf("Tissue_TCR_sharing_network_CD8.pdf", height = 10, width = 10)
+set.seed(2)
+pt <- plot(cluster.gr,
+           edge.width = igraph::E(cluster.gr)$weight*20,
+           vertex.color = unname(tissues_colors)[match(x = names(V(cluster.gr)), table = names(tissues_colors))],
+           vertex.label.dist = 0,
+           vertex.label.color = unname(tissues_colors)[match(x = names(V(cluster.gr)), table = names(tissues_colors))],
+           vertex.label.cex	= 1,
+           layout = layout_in_circle(cluster.gr))
+dev.off()

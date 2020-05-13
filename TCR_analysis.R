@@ -283,7 +283,7 @@ ggplot(results, aes(x = Tissue,  fill = clone_numbers)) +
   scale_fill_discrete(name = "Clonality", labels = c("Clonal", "Duplicated", "Unique"))
 dev.off()
 
-###-----------------------------6. distribution of T clonetyps across clusters------------------
+###-----------------------------7. distribution of T clonetyps across clusters------------------
 TCR_clone_dat <- T_cell_clone_uniq %>% ### the input "T_cell_clone_uniq" was generated from step 1 above.
   select(c(Tissue, cell_barcode, raw_clonotype_id)) %>%
   mutate(cluster = mapvalues(cell_barcode, from = row.names(T_cells_meta.data), to = T_cells_meta.data$T_subtype) )  %>% unique

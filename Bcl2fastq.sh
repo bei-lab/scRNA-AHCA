@@ -1,3 +1,8 @@
+
+# BCL to FASTQ file converter
+# bcl2fastq v2.19.0.316
+# Copyright (c) 2007-2017 Illumina, Inc.
+
 bcl2fastq  \
 --minimum-trimmed-read-length 8 \
 --mask-short-adapter-reads 8  \

@@ -1,4 +1,3 @@
-##----------------This script was used to identify T cell with paired A and B chains.-------####
 ##---------------Take CD8 T cell for an example.--------------########
 library(Seurat)
 library(ggpubr)
@@ -69,6 +68,7 @@ tissus_to_numbers <- c( "Common.bile.duct" = 1,
                         # x6 = '#ccacff'
 )
 
+##----------------Step 1. Identify T cell with paired A and B chains.-------####
 #######################################--------------------------------------################################S
 number_to_tissue <- read.table("number_corresponding_tissue_BCR.txt", header = F, col.names = c("Number", "Tissue"), stringsAsFactors = F)
 T_cells_meta.data <- read.table("CD8_meta.data.csv", header = T, row.names = 1, sep = "\t", stringsAsFactors = F, comment.char = "")

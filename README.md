@@ -8,4 +8,4 @@ we performed single-cell transcriptomes of 88,622 638 cells derived from 15 tiss
 The AHCA reveals the inter- and intra-organ heterogeneity of cell characteristics and provides a useful resource to uncover key events during the development of human diseases such as the recent outbreak of coronavirus disease 2019 (COVID-19) in the context of heterogeneity of cells and organs.
 
 ## Install the R package monocle 2.99
-Please download the R package monocle 2.99 in the folder scRNA-AHCA/Data For Ploting/.
+Please download the R package monocle 2.99 in the folder `scRNA-AHCA/Data For Ploting/cole-trapnell-lab-monocle-release-2.99.tar.gz`.

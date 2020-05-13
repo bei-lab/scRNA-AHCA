@@ -13,13 +13,13 @@ The AHCA reveals the inter- and intra-organ heterogeneity of cell characteristic
 Please download the R package monocle 2.99 in the folder `scRNA-AHCA/Data For Ploting/cole-trapnell-lab-monocle-release-2.99.tar.gz`.
 
 ## Install CellPhoneDB
-Please download and install the CellPhoneDB in the website [https://github.com/Teichlab/cellphonedb](https://github.com/Teichlab/cellphonedb).
+Please download and install the CellPhoneDB in the website [`https://github.com/Teichlab/cellphonedb`](https://github.com/Teichlab/cellphonedb).
  
 ## Install SCENIC
-Please download and install the SCENIC in the website [https://github.com/aertslab/SCENIC](https://github.com/aertslab/SCENIC).
+Please download and install the SCENIC in the website [`https://github.com/aertslab/SCENIC`](https://github.com/aertslab/SCENIC).
 
 ## AHCA Website
-We developed a website for international users at [`http://research.gzsums.net:8888`](http://research.gzsums.net:8888).
+We developed an HCA website for international users at [`http://research.gzsums.net:8888`](http://research.gzsums.net:8888).
 
  
  

@@ -9,7 +9,6 @@ library(data.table)
 library(parallel)
 library(RColorBrewer)
 library(ComplexHeatmap)
-library(circlize)
 
 ## Take fibroblast and smooth muscle cell as an example.
 ## We remove the contaminated gene in each tissue before comparing the difference between different tissues.

@@ -1,3 +1,5 @@
+##----------------This script was used to identify T cell with paired A and B chains.-------####
+##---------------Take CD8 T cell for an example.--------------########
 library(Seurat)
 library(ggpubr)
 library(plyr)
@@ -13,9 +15,6 @@ library(Startrac)
 library(ggplot2)
 library(ggsci)
 library(igraph)
-
-## this script was used to identify T cell with paired A and B chains.
-### Take CD8 T cell for an example.
 
 tissues_colors <- c(    "Common.bile.duct" = '#1f77b4',
                         Bladder = '#aec7e8',

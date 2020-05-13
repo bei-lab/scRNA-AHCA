@@ -191,7 +191,7 @@ uppertri <- as.matrix(uppertri)
 tmp <- as.vector(t(uppertri))
 weight <- tmp[!((tmp == 10)|(tmp == 0)) ]
 
-#########---------------------------------------------------------------------------------
+#########----------------------------4. ploting-----------------------------------------------------
 E(cluster.gr)$weight <- weight
 
 E(cluster.gr)$width <- E(cluster.gr)$weight/6

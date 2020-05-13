@@ -1,5 +1,5 @@
 
-library(Seurat)##Seurat V3.0 was used
+library(Seurat)
 library(Matrix)
 library(stringr)
 library(dplyr)
@@ -12,12 +12,12 @@ ags <- commandArgs(trailingOnly = T)
 dir.create(paste0("/data4/heshuai/RAW_data/1-SingleCell/3-HCA/3-analysis/4-Seurat_cluster/", ags))
 setwd(paste0("/data4/heshuai/RAW_data/1-SingleCell/3-HCA/3-analysis/4-Seurat_cluster/", ags))
 
-#1. Read in all input expression matrices
-# Create and setup Seurat objects for each dataset 
+#1. Read the expression matrices
+# Create and setup a Seurat object for each tissue 
 TenXdat1 <- Read10X(data.dir = paste0("/data4/heshuai/RAW_data/1-SingleCell/3-HCA/2-Mapping/", ags[1],"/outs/filtered_feature_bc_matrix"))
 TenXdat2 <- CreateSeuratObject(counts = TenXdat1, min.cells = 3, min.features = 500, project = ags[1])
 
-#2.remove the genes in minimal cells (>=0.1% total cells)
+#2. Remove the low-frequency genes (express in >=0.1% cells)
 if(dim(TenXdat2@assays$RNA@data)[2] <= 3000){
   TenXdat <- TenXdat2
 } else {
@@ -25,11 +25,10 @@ if(dim(TenXdat2@assays$RNA@data)[2] <= 3000){
                                 min.features = 500, project = ags[1])
 }
 
-#3. cells quality filtering
+#3. Cell quality filtering
 mito.features <- grep(pattern = "^MT-", x = rownames(x = TenXdat), value = TRUE)
 percent.mito <- Matrix::colSums(x = GetAssayData(object = TenXdat, slot = 'counts')[mito.features, ]) / Matrix::colSums(x = GetAssayData(object = TenXdat, slot = 'counts'))
 
-# The [[ operator can add columns to object metadata, and is a great place to stash QC stats
 # TenXdat[['percent.ribo']] <- percent.ribo
 TenXdat <- subset(x = TenXdat, subset = nFeature_RNA >= 500 & nFeature_RNA < 25000 & percent.mito <= 0.25 & nCount_RNA >= 1000 & nCount_RNA <= 500000)
 TenXdat <- NormalizeData(object = TenXdat, normalization.method = "LogNormalize", scale.factor = 1e4)
@@ -39,7 +38,7 @@ TenXdat <- FindVariableFeatures(object = TenXdat, selection.method = 'mean.var.p
 TenXdat <- RunPCA(object = TenXdat, features = VariableFeatures(object = TenXdat), verbose = FALSE)
 # TenXdat <- ProjectDim(object = TenXdat)
 
-#4. dims and resulation choose
+#4. Selected dims and resolation 
 tissuename <- ags
 tissue <- TenXdat
 all_tissues <- c('bile_cDNA', 'bladder_cDNA', 'blood_cDNA', 'esophagus_cDNA', 'heart_cDNA', 'kidney_cDNA', 
@@ -72,14 +71,16 @@ tissue <- FindNeighbors(object = tissue, dims = 1:dim.use)
 tissue <- FindClusters(object = tissue, resolution = res.use)
 
 tissuename <- ags
+  
 #5. Run the TSNE
 tissue <- RunTSNE(object = tissue, dims = 1:dim.use)
-### plot the tSNE
+  
+### Plot the tSNE
 pdf(paste0(tissuename, "_", dim.use, "_", res.use, "_tSNE.pdf"))
 DimPlot(object = tissue, reduction = 'tsne', label = TRUE)
 dev.off()
 
-#6. find all the markers
+#6. Find all the markers
 result <- mclapply(as.numeric(levels(tissue@active.ident)),
                    FUN =  function(x) {FindMarkers(tissue, ident.1 = x, ident.2 = NULL)},
                    mc.cores = 16)
@@ -93,7 +94,7 @@ tissue.markers %>% group_by(cluster) %>% TOP_N(n = 50, wt = avg_logFC) -> top50
 write.table(top50, paste0(ags, "top50.csv"), sep = ",", row.names = T, quote = F)
 write.table(tissue.markers, paste0(ags, ".csv"), sep = ",", row.names = T, quote = F)
 
-#7. plot the heat map
+#7. Plot the heatmap
 tissue.markers %>% group_by(cluster) %>% TOP_N(n = 10, wt = avg_logFC) -> top10
 pdf(paste0(tissuename, "_", dim.use, "_", res.use,"_heatmap.pdf"), width = 14, height = 7)
 DoHeatmap(object = tissue, features = top10$gene, size = 2) + NoLegend() +
@@ -106,12 +107,13 @@ dev.off()
 tissue[["tissue"]] <- ags[1]
 assign(ags[1], tissue)
 
-###it is so import that "list" args was used in save function.
+#8. Save the Seurat object.
 save(list = ags[1], file = paste0(ags[1], ".RData"))
 write.table(data.frame(tissue = ags[1], genes = dim(TenXdat@assays$RNA@data)[1], cells = dim(TenXdat@assays$RNA@data)[2]),
             file = paste0(ags[1], ".txt"),
             sep = "\t", row.names = F, quote = F)
 
+## R package version
 sessionInfo()
 R version 3.6.1 (2019-07-05)
 Platform: x86_64-conda_cos6-linux-gnu (64-bit)

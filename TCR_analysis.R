@@ -34,12 +34,6 @@ tissues_colors <- c(    "Common.bile.duct" = '#1f77b4',
                         Stomach = '#c7c7c7',
                         Testis = '#17becf',
                         Trachea = '#d62790'
-                        # x1 = '#00cdaa',
-                        # x2 = '#aacdaa',
-                        # x3 = '#aaaa00',
-                        # x4 = '#ff00ff',
-                        # x5 = '#00acff',
-                        # x6 = '#ccacff'
 )
 
 tissus_to_numbers <- c( "Common.bile.duct" = 1,
@@ -61,16 +55,9 @@ tissus_to_numbers <- c( "Common.bile.duct" = 1,
                         Stomach = 1,
                         Testis = 1,
                         Trachea = 1
-                        # x1 = '#00cdaa',
-                        # x2 = '#aacdaa',
-                        # x3 = '#aaaa00',
-                        # x4 = '#ff00ff',
-                        # x5 = '#00acff',
-                        # x6 = '#ccacff'
 )
 
 ##----------------------------------Step 1. Identify T cell with paired A and B chains.-------------------------------####
-#######################################--------------------------------------################################S
 number_to_tissue <- read.table("number_corresponding_tissue_TCR.txt", header = F, col.names = c("Number", "Tissue"), stringsAsFactors = F)
 T_cells_meta.data <- read.table("CD8_meta.data.csv", header = T, row.names = 1, sep = "\t", stringsAsFactors = F, comment.char = "")
 
@@ -135,7 +122,6 @@ T_cell_clone_uniq$annotation <- mapvalues(T_cell_clone_uniq$cell_barcode,
 
 ##--------------------------------------------------Step 2. TCR sharing across organs.--------------------------------####
 
-
 ##remove none clone cells
 T_cell_clone_uniq_each <- T_cell_clone_uniq[ !duplicated(T_cell_clone_uniq$"cell_barcode"), ]
 duplicated_clones <- names(table(T_cell_clone_uniq_each$raw_clonotype_id)[unname(table(T_cell_clone_uniq_each$raw_clonotype_id))>= 2])
@@ -158,14 +144,11 @@ row.names(Cor_T_matrix) <- T_cell_clone_sort_h_2_l$Tissue
 colnames(Cor_T_matrix) <- T_cell_clone_sort_h_2_l$Tissue
 
 shared_matrix <- unclass(with(T_cell_clone_sort_h_2_l,table(raw_clonotype_id, Tissue)))
-# write.table(shared_matrix, "clone_type_numbers_in_each_tissue_of_CD4.txt", sep = "\t", col.names = T, row.names = T, quote = F)
 shared_matrix[ shared_matrix > 0 ] <- 1
 
 shared_m <- t(shared_matrix) %*% (shared_matrix)
-
 cluster.gr <- igraph::graph_from_adjacency_matrix(shared_m/sum(shared_m), 
                                                   mode="undirected", weighted=TRUE, diag=FALSE)
-
 
 ##------------------3. calculate the sharing weight (TCR tracking analysis across organs)----------------###
 
@@ -200,9 +183,7 @@ E(cluster.gr)$width <- 1+E(cluster.gr)$weight/8
 
 V(cluster.gr)$size <- c(T_cell_clone_uniq[ !duplicated(T_cell_clone_uniq$"cell_barcode"), ]$Tissue %>% table()) %>% log2
 V(cluster.gr)$frame.color <- unname(tissues_colors)[match(x = names(V(cluster.gr)), table = names(tissues_colors))]
-# V(cluster.gr)$color <- tissues_colors[c(1:17,19)]
 
-# png("Tissue_TCR_shared_network_CD4.png", height = 10, width = 10, res = 400, units = "in")
 pdf("Tissue_TCR_sharing_network_CD8.pdf", height = 10, width = 10)
 set.seed(2)
 pt <- plot(cluster.gr,
@@ -214,7 +195,6 @@ pt <- plot(cluster.gr,
            layout = layout_in_circle(cluster.gr))
 dev.off()
 
-
 #####-----------------------------------------5. TCR tracking analysis across subclusters--------------------------------##
 
 TCR <- T_cell_clone_uniq %>% ### the input "T_cell_clone_uniq" was generated from step 1 above.
@@ -225,7 +205,6 @@ TCR <- T_cell_clone_uniq %>% ### the input "T_cell_clone_uniq" was generated fro
 
 obj <- new("Startrac", TCR, aid = "HCA")
 obj <- calIndex(obj)
-# tic("pIndex")
 obj <- pIndex(obj)
 
 obj@pIndex.tran[is.na(obj@pIndex.tran)] <- 0
@@ -254,7 +233,6 @@ pheatmap::pheatmap(migration_across_tissue,
                    height = 14 
 )
 dev.off()
-
 
 ###-----------------------------6. distribution of T clonetyps across organs------------------##
 
@@ -340,7 +318,6 @@ dev.off()
 
 #########------------------------8. TCR sharing across organs and clusters -----------------------------------------############
 
-# load("subset_T_meta.data.RData")
 metdata <- T_cells_meta.data ## T_cell_clone_uniq: the input "T_cell_clone_uniq" was generated from step 1 above.
 T_cell_clone_uniq <- T_cell_clone_uniq %>% subset(!(annotation %in% grep(T_cell_clone_uniq$annotation, pattern = "TGD", value = T)))
 clo_cells <- T_cell_clone_uniq$cell_barcode

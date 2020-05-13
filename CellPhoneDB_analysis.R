@@ -51,7 +51,7 @@ cellphone_dat %>% ggplot(., aes(x = tissue)) +
   scale_y_continuous(expand = c(0.002, 0), limits = c(0, 3000), breaks = seq(0, 3000, 500))
 dev.off()
   
-###-----------------------------------------prepare the data for cytoscape---------------####
+###-----------------------------------------prepare the files for cytoscape---------------####
 celltype_celltypes_annotation <- cellphone_dat %>% 
   mutate(Type1 = part1 %>% 
            gsub(pattern = ".*high|HPro_Esophagus|HPro_Skin|Stem|Absorptive|Follicular|Novel|Simple|Goblet|Pit|Secretory|Granular|Tuft|Ionocyte|Chief", replacement = "Epi"),
@@ -108,7 +108,7 @@ for (cell in c("Tcells_CD4", "Tcells_CD8", "Bcells", "Plasma", "Fib", "Smo", "Fi
   
 }
 
-##----------summary the number of interactions for each cell type
+##----------summarize the number of interactions for each cell type
 tmp <- data.frame()
 for (cell in c("Tcells_CD4", "Tcells_CD8", "Bcells", "Plasma", "Fib", "Smo", "FibSmo", "Myeloid", "NK", "Epi", "Endo")) {
   Tcells_CD4_for_cytoscape <- get(cell) %>% dplyr::select(Type) %>% table() %>% unclass %>% as.data.frame()
@@ -135,7 +135,7 @@ write.table(tmp, "summary_dat_for_cytoscape.txt", sep = "\t", quote = F, row.nam
 
 ###------------------modify Receptor_and_ligation_all.txt data-----##############
 
-all_cellphone_dat <-  read.table("Receptor_and_ligation_all.txt",
+all_cellphone_dat <-  read.table("Receptor_and_ligation_all_demo.txt",
                                     header = T,
                                     row.names = 1,
                                     sep = "\t",

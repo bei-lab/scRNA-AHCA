@@ -1,4 +1,4 @@
-# Find all the marker gene in parallel. This function can reduce the elapsed time to 1/6-1/3.
+# Find all the marker genes in parallel. This function can reduce the elapsed time to 1/6-1/3.
 library(parallel)
 library(Seurat)
 

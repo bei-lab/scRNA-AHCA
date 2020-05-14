@@ -1,4 +1,6 @@
 ## monocle version 2.99
+library(Rtsne)
+library(monocle)
 
 fixed_reduceDimension <- function (cds, max_components = 2, reduction_method = c("UMAP", "DDRTree"), auto_param_selection = TRUE, scaling = TRUE, 
     verbose = TRUE, ...){

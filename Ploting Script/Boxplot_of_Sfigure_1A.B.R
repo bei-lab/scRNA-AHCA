@@ -28,12 +28,6 @@ tissues_colors <- c(    "Common.bile.duct" = '#1f77b4',
                         Stomach = '#c7c7c7',
                         # Testis = '#17becf',
                         Trachea = '#d62790'
-                        # x1 = '#00cdaa',
-                        # x2 = '#aacdaa',
-                        # x3 = '#aaaa00',
-                        # x4 = '#ff00ff',
-                        # x5 = '#00acff',
-                        # x6 = '#ccacff'
 )
 
 summary_of_genes_and_UMI_after_filtering <- read.table("BG.RV.meta_data_of_all_tissues_from_merged_data.txt",

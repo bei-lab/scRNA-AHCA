@@ -33,7 +33,8 @@ cellranger vdj \
 
 cellranger count \
 --force-cells=13000 \
---id=sample_name --localcores=16  \
+--id=sample_name \
+--localcores=16  \
 --transcriptome=/data/home/hanbw/database/refdata-cellranger-GRCh38_and_EBV_5p  \
 --fastqs=/data4/heshuai/RAW_data/1-SingleCell/2-NKTCL-SingcleCell/NKTCL_SC1811_YGY_lung/AHY725CCXY/AHY725CCXY/sample_name_1,\
 /data4/heshuai/RAW_data/1-SingleCell/2-NKTCL-SingcleCell/NKTCL_SC1811_YGY_lung/AHY725CCXY/AHY725CCXY/sample_name_2,\

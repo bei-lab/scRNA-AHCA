@@ -3,6 +3,13 @@
 # bcl2fastq v2.19.0.316
 # Copyright (c) 2007-2017 Illumina, Inc.
 
+#BSUB -n 16
+#BSUB -o %J.our
+#BSUB -e %J.err
+#BSUB -R span[hosts=1]
+##BSUB -q smp
+#######BSUB -m s001
+
 bcl2fastq  \
 --minimum-trimmed-read-length 8 \
 --mask-short-adapter-reads 8  \

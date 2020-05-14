@@ -1,11 +1,11 @@
 library(data.table)
-library(clusterProfiler)
 library(Seurat)
 library(dplyr)
 library(ggplot2)
-library(org.Hs.eg.db)
 library(reshape2)
 library(stringr)
+library(plyr)
+library(pheatmap)
 
 cellphone_dat <- read.table("Receptor_and_ligation_significant.txt",
                             header = T,

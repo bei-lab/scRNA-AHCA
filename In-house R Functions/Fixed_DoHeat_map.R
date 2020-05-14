@@ -1,6 +1,6 @@
 #library(Seurat)
 #library(scales)
-#library(rlang)
+library(rlang)
 #library(ggplot2)
 
 Fixed_DoHeat_map <- function (object, features = NULL, cells = NULL, group.by = "ident", 

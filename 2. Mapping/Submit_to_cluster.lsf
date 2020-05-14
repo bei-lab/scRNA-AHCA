@@ -1,1 +1,2 @@
-cat |bsub
+cat Cellranger_Count.sh|bsub
+cat Cellranger_VDJ.sh|bsub

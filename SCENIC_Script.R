@@ -82,7 +82,7 @@ subset_cells <- subset_cells_selected
 regulonAUC <- loadInt(scenicOptions, "aucell_regulonAUC")
 regulonAUC <- regulonAUC[onlyNonDuplicatedExtended(rownames(regulonAUC)),]
 
-subset_cells@assays$RNA@data <- regulonAUC@assays@data$AUC
+subset_cells@assays$RNA@data <- regulonAUC@assays$data$AUC
 genes_modified <- subset_cells %>% row.names %>% gsub(., pattern="_extended*", replacement = "")
 row.names(subset_cells@assays$RNA@data) <- genes_modified
 
@@ -98,7 +98,7 @@ all_markers$gene <- unlist(mapply(rownames, result, SIMPLIFY = F))
 all_markers$cluster <- rep(levels(subset_cells@active.ident), times = mapply(dim, result, SIMPLIFY = TRUE)[1,])
 subset_cells.markers <- all_markers
 
-row.names(regulonAUC@assays@data$AUC) <- regulonAUC@assays@data$AUC %>% row.names %>% gsub(., pattern = "_extended*", replacement = "")
+row.names(regulonAUC@assays@data$AUC) <- regulonAUC@assays$data$AUC %>% row.names %>% gsub(., pattern = "_extended*", replacement = "")
 tissue_specific_gene <- subset_cells.markers %>% TOP_N(10, pct.1 = 0.2, sig.padj = 0.05, fc.threshold = 0.01) %>% `[`("gene") %>% unlist %>% unique()
 
 Cells <- "Epi_HCA"

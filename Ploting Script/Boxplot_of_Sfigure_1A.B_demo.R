@@ -30,7 +30,7 @@ tissues_colors <- c(    "Common.bile.duct" = '#1f77b4',
                         Trachea = '#d62790'
 )
 
-summary_of_genes_and_UMI_after_filtering <- read.table("BG.RV.meta_data_of_all_tissues_from_merged_data.txt",
+summary_of_genes_and_UMI_after_filtering <- read.table("Reannotation_HCA_alltissues_meta.data_84363_cell.txt",
                                                        header = T,
                                                        row.names = 1,
                                                        sep = "\t",

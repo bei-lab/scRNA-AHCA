@@ -36,7 +36,7 @@ tissues_colors <- c(    "Common.bile.duct" = '#1f77b4',
 )
 
 ####################---------------read meta.data-----------------------################################
-meta.data <- read.table(file = "GB_RV.cell_of_each_tissue.meta.data.txt", ##meta.data after filtering 
+meta.data <- read.table(file = "Reannotation_HCA_alltissues_meta.data_84363_cell.txt", ##meta.data after filtering 
                         sep = "\t", 
                         header = T, 
                         col.names = c("Tissue", "Number of UMI", "Number of Genes", "Cluster", "Organ", "Cell_types", "cellbarcode"),

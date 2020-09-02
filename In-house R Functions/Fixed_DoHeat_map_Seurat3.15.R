@@ -3,9 +3,6 @@
 library(rlang)
 #library(ggplot2)
 
-library(rlang)
-library(scales)
-
 Fixed_DoHeatmap <- function (object, features = NULL, cells = NULL, group.by = "ident", 
     group.bar = TRUE, group.colors = NULL, disp.min = -2.5, disp.max = NULL, 
     slot = "scale.data", assay = NULL, label = TRUE, size = 5.5, 

@@ -10,7 +10,7 @@ library(RColorBrewer)
 library(ggthemes)
 library(ggsci)
 
-meta.data <- read.table(file = "GB_RV.cell_of_each_tissue.meta.data.txt", #"/data4/heshuai/RAW_data/1-SingleCell/3-HCA/3-analysis/8-reanalysis/Figure_1/meta.data_of_all_cells.txt",  ##meta.data before filtering
+meta.data <- read.table(file = "Reannotation_HCA_alltissues_meta.data_84363_cell.txt", #"/data4/heshuai/RAW_data/1-SingleCell/3-HCA/3-analysis/8-reanalysis/Figure_1/meta.data_of_all_cells.txt",  ##meta.data before filtering
                         sep = "\t", 
                         header = T, 
                         # col.names = c("Tissue", "Number of UMI", "Number of Genes", "Cluster", "Organ", "Cell_types"),
@@ -18,21 +18,8 @@ meta.data <- read.table(file = "GB_RV.cell_of_each_tissue.meta.data.txt", #"/dat
                         row.names = 1,
                         stringsAsFactors = F)
 meta.data$orig.ident <- factor(meta.data$orig.ident %>% as.character(),
-                               levels = c('bladder_cDNA',
-                                          'blood_cDNA',
-                                          'bile_cDNA',
-                                          'esophagus_cDNA',
-                                          'heart_cDNA',
-                                          'liver_cDNA',
-                                          'lymphnode_cDNA',
-                                          'marrow_cDNA',
-                                          'muscle_cDNA',
-                                          'largeintestine_cDNA',
-                                          'skin_cDNA',
-                                          'smallintestine_cDNA',
-                                          'spleen_cDNA',
-                                          'stomach_cDNA',
-                                          'Trachea_cDNA'))
+                               levels = meta.data$orig.ident %>% as.character %>% unique %>% sort)
+
 
 by(meta.data %>%
    dplyr::select(Cell_types),
@@ -52,7 +39,7 @@ meta.data$Cell_types <- factor(meta.data$Cell_types, levels = rev(celltypes_orde
 meta.data %>% dplyr::select(orig.ident) %>% unique() %>% `[`(1:8,) -> Tentissues
 
 
-###-------------10 tissues barplot-----------------
+###-------------8 tissues barplot-----------------
 
 
 ggplot(meta.data %>% subset(orig.ident %in% Tentissues) %>% dplyr::select(Cell_types, orig.ident), aes(Cell_types, fill = Cell_types)) + geom_bar(width = 0.7) +
@@ -68,7 +55,7 @@ ggplot(meta.data %>% subset(orig.ident %in% Tentissues) %>% dplyr::select(Cell_t
   theme(axis.ticks.y = element_blank()) + 
   geom_hline(yintercept = c(300, 600, 900, 1200, 1500), colour = "white")
 
-###-------------9 tissues barplot-----------------
+###-------------7 tissues barplot-----------------
 
 meta.data %>% dplyr::select(orig.ident) %>% unique() %>% `[`(9:15,) -> Ninetissues
 ggplot(meta.data %>% subset(orig.ident %in% Ninetissues) %>% dplyr::select(Cell_types, orig.ident), aes(Cell_types, fill = Cell_types)) + geom_bar(width = 0.7) +

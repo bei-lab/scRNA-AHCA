@@ -20,6 +20,11 @@ library(ComplexHeatmap)
 ## 4. remove the contaminated gene and then normalize the data, run PCA, find the cluster and run tSNE
 ## 5. remove the contaminated clusters.
 
+##------optional------parallel environment seting--cores = 10, memory = 100G----##
+options(future.globals.maxSize = 10*1000 * 1024^2)
+plan("multiprocess", workers = 10)
+
+color_used <- c(pal_npg()(10),pal_igv()(9),pal_uchicago("light")(9),pal_futurama()(12), pal_aaas()(10))[-8]
 
 ### load the HCA_data_singlet
 load("/data4/heshuai/RAW_data/1-SingleCell/3-HCA/3-analysis/4-Seurat_cluster/HCA_all_data_84363_cells.RData")
@@ -32,19 +37,13 @@ celltypes <- c("Fib|Smo" )
 
 for (celltype in celltypes) {
   subset_cells <- subset(x = HCA_data, cells = names(grep(celltype, HCA_data$Cell_types_in_tissue, value = T)))
-  # subset_cells <- subset(x = subset_cells,
-  #                        subset = nFeature_RNA >= 500 & nFeature_RNA < 4000 & percent.mito <= 0.25 & nCount_RNA >= 1000 & nCount_RNA <= 10000)
   print(table(subset_cells@active.ident))
   subset_cells <- NormalizeData(object = subset_cells, normalization.method = "LogNormalize", scale.factor = 1e4)
   subset_cells <- ScaleData(object = subset_cells, features = rownames(x = subset_cells), vars.to.regress = c("nCount_RNA", "percent.mito"))
   
   ###############-----------------------------1. Find all the marker genes of same cell types across the tissues-------------------####################
   ###subsetclusters markers
-  result_subset_cells <- FindMarkers_parallel(object = subset_cells, mc.cores = 36)
-  subset_cells_markers <- do.call(rbind, result_subset_cells)
-  subset_cells_markers$gene <- unlist(mapply(rownames, result_subset_cells))
-  subset_cells_markers$cluster <- rep(names(table(subset_cells@active.ident))[table(subset_cells@active.ident) > 30], 
-                                      times = mapply(dim, result_subset_cells, SIMPLIFY = TRUE)[1,])
+  subset_cells_markers <- FindMarkers_parallel(object = subset_cells, mc.cores = 10)
   
   subset_cells_markers %>% TOP_N(200) -> top200
   reordered_subset_cells_markers <- subset_cells_markers %>% TOP_N(4000)
@@ -131,12 +130,10 @@ for (celltype in celltypes) {
                                    row.names = 1)[, 1])
   subset_cells <- subset(x = HCA_data, cells = names(grep(celltype, HCA_data$Cell_types_in_tissue, value = T)))
   subset_cells <- subset_cells[!(c(subset_cells %>% row.names()) %in% genes), ]
-  # subset_cells <- subset(x = subset_cells,
-  #                        subset = nFeature_RNA >= 500 & nFeature_RNA < 4000 & percent.mito <= 0.25 & nCount_RNA >= 1000 & nCount_RNA <= 10000)
-  # print(table(subset_cells@active.ident))
+  
   subset_cells <- NormalizeData(object = subset_cells, normalization.method = "LogNormalize", scale.factor = 1e4)
-  subset_cells <- ScaleData(object = subset_cells, features = rownames(x = subset_cells), vars.to.regress = c("nCount_RNA", "percent.mito"))
   subset_cells <- FindVariableFeatures(object = subset_cells, selection.method = 'mean.var.plot', mean.cutoff = c(0.1, Inf), dispersion.cutoff = c(0.5, Inf))
+  subset_cells <- ScaleData(object = subset_cells, features = rownames(x = subset_cells), vars.to.regress = c("nCount_RNA", "percent.mito"))
   subset_cells <- RunPCA(object = subset_cells, features = VariableFeatures(object = subset_cells), verbose = FALSE, npcs = 50)
   
   dim.use <- 25
@@ -151,7 +148,7 @@ for (celltype in celltypes) {
   ### plot the tSNE
   png(paste0(make.names(celltype), "_tSNE_Round_1_", dim.use, "_", res.use, ".png"),
       width = 15, height = 15, units = "in", res = 300)
-  p2 <- DimPlot(object = subset_cells, reduction = 'tsne', label = TRUE, pt.size = 1,) + NoLegend()
+  p2 <- DimPlot(object = subset_cells, reduction = 'tsne', label = TRUE, pt.size = 1) + NoLegend()
   print(p2)
   dev.off()
   
@@ -170,14 +167,9 @@ for (celltype in celltypes) {
   dev.off()
   
   ###-----------------------------Find all the marker genes-------------------------------------------
-  ###subsetclusters markers
   ###find all the markers
-  result <- FindMarkers_parallel(object = subset_cells, mc.cores = 36)
-  all_markers <- do.call(rbind, result)
-  all_markers$gene <- unlist(mapply(rownames, result))
-  all_markers$cluster <- rep(levels(subset_cells@active.ident), times = mapply(dim, result, SIMPLIFY = TRUE)[1,])
-  subset_cells.markers <- all_markers
-  
+  subset_cells.markers <- FindMarkers_parallel(object = subset_cells, mc.cores = 10)
+ 
   assign(make.names(celltype), subset_cells)
   save(list = make.names(celltype),
        file = paste0(
@@ -188,45 +180,38 @@ for (celltype in celltypes) {
   subset_cells.markers <- subset_cells.markers %>% TOP_N(5000)
   
   write.table(top50,
-              file = paste0(
-                            make.names(celltype), "_top50_", dim.use, "_", res.use, ".csv"),
+              file = paste0(make.names(celltype), "_top50_", dim.use, "_", res.use, ".csv"),
               sep = ",",
               row.names = T,
               quote = F)
   
   write.table(subset_cells.markers,
-              file = paste0(
-                            make.names(celltype), "_all_DEGs_", dim.use, "_", res.use, ".csv"),
+              file = paste0(make.names(celltype), "_all_DEGs_", dim.use, "_", res.use, ".csv"),
               sep = ",",
               row.names = T,
               quote = F)
   
   ### plot the heat map
   subset_cells.markers %>% TOP_N(10) -> top10
-  png(paste0(
-             make.names(celltype), "_", dim.use,"_",res.use, "_heatmap.png"),
-      width = 15, height = 15, units = "in", res = 300)
   
-  p5 <- Fixed_DoHeat_map(object = subset_cells, features = top10$gene, size = 2) + NoLegend() +
-    theme(axis.text.x = element_text(size = 2),
-          axis.text.y = element_text(size = 2),
-          axis.title.x = element_text(colour = "red", size = 2),
-          axis.title.y = element_text(colour = "black", size = 2))
+  png(paste0(make.names(celltype), "_", dim.use,"_",res.use, "_heatmap.png"),width = 15, height = 15, units = "in", res = 300)
+  p5 <- Fixed_DoHeat_map(object = subset_cells, features = top10$gene, size = 2) + NoLegend()  +
+  theme(axis.text.x = element_text(size = 0), ##control the x label of cell barcodes
+        axis.text.y = element_text(size = 0) ##control the gene label
+  )
   print(p5)
   dev.off()
 }
 
 ###------------------------------------------use the feature plot and vlnplot to identify the cell types------------------------------###########################
-
 png("vlnplot_of_FibSmo.png", height = 60, width = 20, units = "in", res = 400)
 VlnPlot(subset_cells, features = c("CD8A", "CD4", "CD3E", "CD3D", "FCGR3A", "GNLY", "MMP2", "ACTA2", "CD14", "EPCAM", "PECAM1", "PTRRC"), pt.size = 0.1,
-        # cols = c(pal_npg()(10),pal_igv()(9),pal_uchicago("light")(9),pal_futurama()(12), pal_aaas()(10))[-8], 
+        cols = color_used, 
         ncol = 1)  
 dev.off()
 
 png("feature_plot_of_FibSmo.png", height = 60, width = 30, units = "in", res = 400)
 FeaturePlot(subset_cells, features = c("CD8A", "CD4", "CD3E", "CD3D", "FCGR3A", "GNLY", "MMP2", "ACTA2", "CD14", "EPCAM", "PECAM1", "PTRRC"), pt.size = 0.5,
-            # cols = c(pal_npg()(10),pal_igv()(9),pal_uchicago("light")(9),pal_futurama()(12), pal_aaas()(10))[-8], 
             ncol = 3)  
 dev.off()
 
@@ -245,8 +230,8 @@ for (celltype in celltypes) {
                          cells = row.names(subset_cells@meta.data)[as.character(subset_cells$YES_OR_NO) %in% "YES"])
   
   subset_cells <- NormalizeData(object = subset_cells, normalization.method = "LogNormalize", scale.factor = 1e4)
-  subset_cells <- ScaleData(object = subset_cells, features = rownames(x = subset_cells), vars.to.regress = c("nCount_RNA", "percent.mito"))
   subset_cells <- FindVariableFeatures(object = subset_cells, selection.method = 'mean.var.plot', mean.cutoff = c(0.1, Inf), dispersion.cutoff = c(0.5, Inf))
+  subset_cells <- ScaleData(object = subset_cells, features = rownames(x = subset_cells), vars.to.regress = c("nCount_RNA", "percent.mito"))
   subset_cells <- RunPCA(object = subset_cells, features = VariableFeatures(object = subset_cells), verbose = FALSE, npcs = 100)
   
   dim.use <- 20
@@ -259,24 +244,13 @@ for (celltype in celltypes) {
   subset_cells <- RunTSNE(object = subset_cells, dims = 1:dim.use)
   
   ### plot the tSNE
-  png(paste0(
-             make.names(celltype), "_tSNE_filtered_", dim.use, "_", res.use, ".png"),
-      width = 15, height = 15, units = "in", res = 300)
+  png(paste0(make.names(celltype), "_tSNE_filtered_", dim.use, "_", res.use, ".png"), width = 15, height = 15, units = "in", res = 300)
   p2 <- DimPlot(object = subset_cells, reduction = 'tsne', label = TRUE, pt.size = 1, label.size = 5) + NoLegend()
   print(p2)
   dev.off()
   
-  png(paste0(
-             make.names(celltype), "tSNE_filtered_groupby_", dim.use, "_", res.use, ".png"),
-      width = 15, height = 15, units = "in", res = 300)
-  p3 <- DimPlot(object = subset_cells, reduction = 'tsne', group.by = "orig.ident", pt.size = 1, 
-                cols = unique(subset_cells$Color_of_tissues)[match(levels(subset_cells$orig.ident)[table(subset_cells@meta.data$orig.ident) > 0], unique(as.character(subset_cells$orig.ident)) )]) + NoLegend()
-  print(p3)
-  dev.off()
   
-  png(paste0(
-             make.names(celltype), "tSNE_filtered_groupby_with_legend_", dim.use, "_", res.use, ".png"),
-      width = 15, height = 15, units = "in", res = 300)
+  png(paste0(make.names(celltype), "tSNE_filtered_groupby_with_legend_", dim.use, "_", res.use, ".png"),width = 15, height = 15, units = "in", res = 300)
   p4 <- DimPlot(object = subset_cells, reduction = 'tsne', group.by = "orig.ident", pt.size = 1,
                 cols = unique(subset_cells$Color_of_tissues)[match(levels(subset_cells$orig.ident)[table(subset_cells@meta.data$orig.ident) > 0], unique(as.character(subset_cells$orig.ident)) )])
   print(p4)
@@ -285,11 +259,10 @@ for (celltype in celltypes) {
   ###-----------------------------Find all the marker genes-------------------------------------------##########################
   ###subsetclusters markers
   ### find all the markers
-  subset_cells.markers <- FindMarkers_parallel(object = subset_cells, mc.cores = 36)
+  subset_cells.markers <- FindMarkers_parallel(object = subset_cells, mc.cores = 10)
   
   assign(paste0(make.names(celltype), "_filtered"), subset_cells)
-  save(list = paste0(make.names(celltype), "_filtered"),
-       file = paste0(make.names(celltype), "_filtered.RData"))
+  save(list = paste0(make.names(celltype), "_filtered"), file = paste0(make.names(celltype), "_filtered.RData"))
   
   subset_cells.markers %>% TOP_N(50) -> top50
   subset_cells.markers <-  subset_cells.markers %>% TOP_N(5000)
@@ -306,15 +279,15 @@ for (celltype in celltypes) {
               quote = F)
   
   subset_cells.markers %>% TOP_N(6000, fc.threshold = log(1.5, base = exp(1))) -> top_fc_lth_1.5 ## genes with fc > 1.5 
+  
   png(paste0(make.names(celltype), "_", dim.use,"_",res.use, "_filtered_heatmap.png"),
       width = 15,
       height = 15,
       res = 300, units = "in")
-  p5 <- DoHeatmap(object = subset_cells, features = top_fc_lth_1.5$gene, size = 2) + NoLegend() +
-    theme(axis.text.x = element_text(size = 2),
-          axis.text.y = element_text(size = 2),
-          axis.title.x = element_text(colour = "red", size = 2),
-          axis.title.y = element_text(colour = "black", size = 2))
+  p5 <- Fixed_DoHeat_map(object = subset_cells, features = top_fc_lth_1.5$gene, size = 2) + NoLegend() +
+  theme(axis.text.x = element_text(size = 0), ##control the x label of cell barcodes
+        axis.text.y = element_text(size = 0) ##control the gene label
+  )
   print(p5)
   dev.off()
   

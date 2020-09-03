@@ -15,14 +15,14 @@ library(ComplexHeatmap)
 ## 1. 1) load the singlet data identfied in each tissue. 
 ##    2) select "the Fibroblast" and "Smooth Muscle Cell" clusters. 
 ##    3) Identfy the differently expressed genes between tissue.
-## 2. calculate the top 1% highly expressed genes in each tissue.
+## 2. calculate the top 2% highly expressed genes in each tissue.
 ## 3. identify the low-frequency genes in each tissue.
 ## 4. remove the contaminated gene and then normalize the data, run PCA, find the cluster and run tSNE
 ## 5. remove the contaminated clusters.
 
 
 ### load the HCA_data_singlet
-load("/data4/heshuai/RAW_data/1-SingleCell/3-HCA/3-analysis/4-Seurat_cluster/HCA_all_data_88638_cells.RData")
+load("/data4/heshuai/RAW_data/1-SingleCell/3-HCA/3-analysis/4-Seurat_cluster/HCA_all_data_84363_cells.RData")
 
 HCA_all_data_singlet <- HCA_data
 
@@ -36,7 +36,7 @@ for (celltype in celltypes) {
   #                        subset = nFeature_RNA >= 500 & nFeature_RNA < 4000 & percent.mito <= 0.25 & nCount_RNA >= 1000 & nCount_RNA <= 10000)
   print(table(subset_cells@active.ident))
   subset_cells <- NormalizeData(object = subset_cells, normalization.method = "LogNormalize", scale.factor = 1e4)
-  subset_cells <- ScaleData(object = subset_cells, features = rownames(x = subset_cells))#, vars.to.regress = c("nCount_RNA", "percent.mito"))
+  subset_cells <- ScaleData(object = subset_cells, features = rownames(x = subset_cells), vars.to.regress = c("nCount_RNA", "percent.mito"))
   
   ###############-----------------------------1. Find all the marker genes of same cell types across the tissues-------------------####################
   ###subsetclusters markers
@@ -55,7 +55,7 @@ for (celltype in celltypes) {
   gc()
 }
 
-####------------------------------------2. calculate top 1% high expression genes in each organ-----------------------#############################################
+####------------------------------------2. calculate top 2% high expression genes in each organ-----------------------#############################################
 ##calculate the top 1% high expression genes
 genes_of_2_percent_expression <- data.frame(Gene_names = NULL,
                                             UMI_sum = NULL,
@@ -82,7 +82,7 @@ write.table(genes_of_2_percent_expression,
             quote = F,
             row.names = T,
             col.names = NA)
-####------------------------------------3. identify the low-frequency genes in each tissue-----------------######################################################
+####------------------------------------3. identify the low-frequency genes in each tissue (repeat 4 times, and only overlapped genes were used in the further analysis)-----------------######################################################
 genes_of_2_percent_expression <- read.table("genes_of_2_percent_expression.txt",
                                             sep = ",",
                                             stringsAsFactors = F,
@@ -135,7 +135,7 @@ for (celltype in celltypes) {
   #                        subset = nFeature_RNA >= 500 & nFeature_RNA < 4000 & percent.mito <= 0.25 & nCount_RNA >= 1000 & nCount_RNA <= 10000)
   # print(table(subset_cells@active.ident))
   subset_cells <- NormalizeData(object = subset_cells, normalization.method = "LogNormalize", scale.factor = 1e4)
-  subset_cells <- ScaleData(object = subset_cells, features = rownames(x = subset_cells))#, vars.to.regress = c("nCount_RNA", "percent.mito"))
+  subset_cells <- ScaleData(object = subset_cells, features = rownames(x = subset_cells), vars.to.regress = c("nCount_RNA", "percent.mito"))
   subset_cells <- FindVariableFeatures(object = subset_cells, selection.method = 'mean.var.plot', mean.cutoff = c(0.1, Inf), dispersion.cutoff = c(0.5, Inf))
   subset_cells <- RunPCA(object = subset_cells, features = VariableFeatures(object = subset_cells), verbose = FALSE, npcs = 50)
   
@@ -245,7 +245,7 @@ for (celltype in celltypes) {
                          cells = row.names(subset_cells@meta.data)[as.character(subset_cells$YES_OR_NO) %in% "YES"])
   
   subset_cells <- NormalizeData(object = subset_cells, normalization.method = "LogNormalize", scale.factor = 1e4)
-  subset_cells <- ScaleData(object = subset_cells, features = rownames(x = subset_cells))#, vars.to.regress = c("nCount_RNA", "percent.mito"))
+  subset_cells <- ScaleData(object = subset_cells, features = rownames(x = subset_cells), vars.to.regress = c("nCount_RNA", "percent.mito"))
   subset_cells <- FindVariableFeatures(object = subset_cells, selection.method = 'mean.var.plot', mean.cutoff = c(0.1, Inf), dispersion.cutoff = c(0.5, Inf))
   subset_cells <- RunPCA(object = subset_cells, features = VariableFeatures(object = subset_cells), verbose = FALSE, npcs = 100)
   
@@ -285,11 +285,7 @@ for (celltype in celltypes) {
   ###-----------------------------Find all the marker genes-------------------------------------------##########################
   ###subsetclusters markers
   ### find all the markers
-  result <- FindMarkers_parallel(object = subset_cells, mc.cores = 36)
-  all_markers <- do.call(rbind, result)
-  all_markers$gene <- unlist(mapply(rownames, result))
-  all_markers$cluster <- rep(levels(subset_cells@active.ident), times = mapply(dim, result, SIMPLIFY = TRUE)[1,])
-  subset_cells.markers <- all_markers
+  subset_cells.markers <- FindMarkers_parallel(object = subset_cells, mc.cores = 36)
   
   assign(paste0(make.names(celltype), "_filtered"), subset_cells)
   save(list = paste0(make.names(celltype), "_filtered"),

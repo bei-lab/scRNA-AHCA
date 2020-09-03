@@ -69,14 +69,6 @@ if(TS == 'Blood_cDNA' ){
   dim.use <- 30; res.use <- 1
 }
 
-#if(ags == 'Small.intestine_cDNA'){
-#  ags <- "Smallintestine_cDNA"
-#} else if (ags == 'Lymph.node_cDNA'){
-#  ags <- "Lymphnode_cDNA"
-#} else if (ags == "Common.bile.duct_cDNA"){
-#  ags <- "Commonbileduct_cDNA"
-#}
-
 subset_cells <- FindNeighbors(object = subset_cells, dims = 1:dim.use)
 subset_cells <- FindClusters(object = subset_cells, resolution = res.use)
 
@@ -125,25 +117,6 @@ subset_cells <- ScaleData(object = subset_cells, features = rownames(x = subset_
 
 subset_cells <- RunPCA(object = subset_cells, features = VariableFeatures(object = subset_cells), verbose = FALSE)
 
-##------------------------ dims and resulation choose
-
-#TS <- ags
-#if(TS == 'Blood' ){
-#  dim.use <- 15; res.use <- 0.4
-#} else if(TS == 'Liver'){
-#  dim.use <- 30; res.use <- 0.8
-#} else if(TS == 'Lymphnode'){
-#  dim.use <- 25; res.use <- 1
-#} else if(TS == 'Marrow'){
-#  dim.use <- 25; res.use <- 0.6
-#} else if(TS %in% c('Smallintestine', 'Spleen')){
-#  dim.use <- 25; res.use <- 0.8
-#} else if(TS == 'Trachea'){
-#  dim.use <- 35; res.use <- 1
-#} else {
-#  dim.use <- 30; res.use <- 1
-#}
-
 subset_cells <- FindNeighbors(object = subset_cells, dims = 1:dim.use)
 subset_cells <- FindClusters(object = subset_cells, resolution = res.use)
 
@@ -163,7 +136,7 @@ plan("multiprocess", workers = 1)
 plan()
 
 ##------------------------ find all the markers
-tissue.markers <- FindMarkers_parallel(subset_cells)
+tissue.markers <- FindMarkers_parallel(subset_cells, mc.cores = 10)
 
 tissue.markers %>% TOP_N(n = 50) -> top50
 write.table(top50, paste0(ags, "top50.csv"), sep = ",", row.names = T, quote = F)
@@ -174,10 +147,9 @@ write.table(tissue.markers %>% TOP_N(n = 2000), paste0(ags, ".csv"), sep = ",", 
 tissue.markers %>% TOP_N(n = 10) -> top10
 pdf(paste0(ags, "_", dim.use, "_", res.use,"_doublets_removed_heatmap.pdf"), width = 14, height = 7)
 Fixed_DoHeatmap(object = subset_cells, features = top10$gene, size = 2) + NoLegend() +
-  theme(axis.text.x = element_text(size = 3),
-        axis.text.y = element_text(size = 3),
-        axis.title.x = element_text(colour = "red", size = 3),
-        axis.title.y = element_text(colour = "black", size = 3))
+  theme(axis.text.x = element_text(size = 0), ##control the x label of cell barcodes
+        axis.text.y = element_text(size = 0) ##control the gene label
+  )
 dev.off()
 
 ##------------------------ plot the vlnplot

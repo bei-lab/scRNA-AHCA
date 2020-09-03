@@ -14,7 +14,7 @@ library(pheatmap)
 ###-------1. basical settings--------------------
 org <- "hgnc" # or hgnc, or dmel
 dbDir <- "/data4/heshuai/RAW_data/1-SingleCell/3-HCA/3-analysis/8-reanalysis/All_singlet_data/" # RcisTarget databases location
-myDatasetTitle <- "HCL" # choose a name for your analysis
+myDatasetTitle <- "AHCA" # choose a name for your analysis
 data(defaultDbNames)
 # scenicOptions@inputDatasetInfo$cellInfo <- "int/cellInfo.Rds"
 dbs <- defaultDbNames[[org]]

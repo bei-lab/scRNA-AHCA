@@ -163,14 +163,7 @@ plan("multiprocess", workers = 1)
 plan()
 
 ##------------------------ find all the markers
-result <- mclapply(as.numeric(levels(subset_cells@active.ident)),
-                   FUN =  function(x) {FindMarkers(subset_cells, ident.1 = x, ident.2 = NULL)},
-                   mc.cores = 16)
-
-all_markers <- do.call(rbind, result)
-all_markers$gene <- unlist(mapply(rownames, result))
-all_markers$cluster <- rep(levels(subset_cells@active.ident), times = mapply(dim, result, SIMPLIFY = TRUE)[1,])
-tissue.markers <- all_markers
+tissue.markers <- FindMarkers_parallel(subset_cells)
 
 tissue.markers %>% TOP_N(n = 50) -> top50
 write.table(top50, paste0(ags, "top50.csv"), sep = ",", row.names = T, quote = F)
@@ -180,7 +173,7 @@ write.table(tissue.markers %>% TOP_N(n = 2000), paste0(ags, ".csv"), sep = ",", 
 
 tissue.markers %>% TOP_N(n = 10) -> top10
 pdf(paste0(ags, "_", dim.use, "_", res.use,"_doublets_removed_heatmap.pdf"), width = 14, height = 7)
-DoHeatmap(object = subset_cells, features = top10$gene, size = 2) + NoLegend() +
+Fixed_DoHeatmap(object = subset_cells, features = top10$gene, size = 2) + NoLegend() +
   theme(axis.text.x = element_text(size = 3),
         axis.text.y = element_text(size = 3),
         axis.title.x = element_text(colour = "red", size = 3),

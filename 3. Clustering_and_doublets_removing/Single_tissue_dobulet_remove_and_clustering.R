@@ -132,9 +132,6 @@ write.table(data.frame(Tissue = ags, genes = dim(subset_cells@assays$RNA@data)[1
             file = paste0(ags[1], "_after_dobuletfinder.txt"),
             sep = "\t", row.names = F, quote = F)
 
-plan("multiprocess", workers = 1)
-plan()
-
 ##------------------------ find all the markers
 tissue.markers <- FindMarkers_parallel(subset_cells, mc.cores = 10)
 

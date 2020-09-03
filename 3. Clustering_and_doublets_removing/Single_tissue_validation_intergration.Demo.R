@@ -107,9 +107,7 @@ print(p4)
 dev.off()
 
 ###-------------2. find all markers-------------------
-plan("multiprocess", workers = 10)
-
-Bladder.anchors.markers <- FindMarkers_parallel(subset_cells)
+Bladder.anchors.markers <- FindMarkers_parallel(subset_cells, mc.cores = 10)
 
 Bladder.anchors.markers %>% TOP_N(50, pct.1 = 0.2) -> top50
 Bladder.anchors.markers <- Bladder.anchors.markers %>% TOP_N(5000)

@@ -56,7 +56,7 @@ exprMat_filtered <- singleCellMatrix[genesKept, ]
 dim(exprMat_filtered)
 
 runCorrelation(exprMat_filtered, scenicOptions)
-exprMat_log <- log2(singleCellMatrix + 1) 
+#exprMat_log <- log2(singleCellMatrix + 1) 
 
 #-------4. Run GENIE3-----------#####
 exprMat_filtered_log <- log2(exprMat_filtered + 1) 
@@ -70,7 +70,7 @@ scenicOptions@settings$seed <- 123
 #--------5. Run SCENIC---------########
 runSCENIC_1_coexNetwork2modules(scenicOptions)
 runSCENIC_2_createRegulons(scenicOptions) #
-runSCENIC_3_scoreCells(scenicOptions, exprMat_log)
+runSCENIC_3_scoreCells(scenicOptions, exprMat_filtered_log)
 
 ######---------to find the most significantly enriched TF in each cluster--------------######
 

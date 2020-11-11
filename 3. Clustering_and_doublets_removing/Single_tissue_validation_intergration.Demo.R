@@ -62,8 +62,8 @@ Bladder.anchors <- RunPCA(Bladder.anchors, npcs = 30, verbose = T)
 Bladder.anchors <- FindNeighbors(Bladder.anchors, dims = 1:30)
 Bladder.anchors <- FindClusters(Bladder.anchors, resolution = 1.5)
 
-Bladder.anchors <- RunUMAP(Bladder.anchors, reduction = "pca", dims = 1:30, reduction.model = "learn-umap")
-# Bladder.anchors <- RunTSNE(Bladder.anchors, reduction = "pca", dims = 1:30)
+#Bladder.anchors <- RunUMAP(Bladder.anchors, reduction = "pca", dims = 1:30, reduction.model = "umap-learn")
+Bladder.anchors <- RunTSNE(Bladder.anchors, reduction = "pca", dims = 1:30)
 
 DefaultAssay(Bladder.anchors) <- "RNA" ##69,274 cells, 26 samples. 454 COCH cells
 # Normalize RNA data for visualization purposes
@@ -81,26 +81,26 @@ dev.off()
 ###---------------------------------------------dim plot-------------------------###
 png("Bladder_tSNE_by_cluster_1.png",
     width = 15, height = 15, units = "in", res = 300)
-p2 <- DimPlot(object = Bladder.anchors, reduction = 'umap', label = F, pt.size = 1, cols = color_used) + NoLegend()
+p2 <- DimPlot(object = Bladder.anchors, reduction = 'tsne', label = F, pt.size = 1, cols = color_used) + NoLegend()
 print(p2)
 dev.off()
 
 png("Bladder_GGJ_tSNE_by_cluster_with_legend_1.png",
     width = 15, height = 15, units = "in", res = 300)
-p5 <- DimPlot(object = Bladder.anchors, reduction = 'umap', label = TRUE, pt.size = 1, cols = color_used)
+p5 <- DimPlot(object = Bladder.anchors, reduction = 'tsne', label = TRUE, pt.size = 1, cols = color_used)
 print(p5)
 dev.off()
 
 png("Bladder_tSNE_by_tissue_1.png",
     width = 15, height = 15, units = "in", res = 300)
-p3 <- DimPlot(object = Bladder.anchors, reduction = 'umap', group.by = "orig.ident", pt.size = 1,
+p3 <- DimPlot(object = Bladder.anchors, reduction = 'tsne', group.by = "orig.ident", pt.size = 1,
               cols = color_used)
 print(p3)
 dev.off()
 
 png("Bladder_tSNE_by_tissue_nolegend_1.png",
     width = 15, height = 15, units = "in", res = 300)
-p4 <- DimPlot(object = Bladder.anchors, reduction = 'umap', group.by = "orig.ident", pt.size = 1, 
+p4 <- DimPlot(object = Bladder.anchors, reduction = 'tsne', group.by = "orig.ident", pt.size = 1, 
               cols = color_used) +
   NoLegend()
 print(p4)

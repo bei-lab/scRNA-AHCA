@@ -62,7 +62,7 @@ Bladder.anchors <- RunPCA(Bladder.anchors, npcs = 30, verbose = T)
 Bladder.anchors <- FindNeighbors(Bladder.anchors, dims = 1:30)
 Bladder.anchors <- FindClusters(Bladder.anchors, resolution = 1.5)
 
-#Bladder.anchors <- RunUMAP(Bladder.anchors, reduction = "pca", dims = 1:30, reduction.model = "umap-learn")
+#Bladder.anchors <- RunUMAP(Bladder.anchors, reduction = "pca", dims = 1:30, umap.method = "umap-learn")
 Bladder.anchors <- RunTSNE(Bladder.anchors, reduction = "pca", dims = 1:30)
 
 DefaultAssay(Bladder.anchors) <- "RNA" ##69,274 cells, 26 samples. 454 COCH cells

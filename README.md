@@ -22,6 +22,8 @@ Please download and install the SCENIC at [`https://github.com/aertslab/SCENIC`]
 ## AHCA Website
 We developed an AHCA website for international users at [`http://research.gzsums.net:8888`](http://research.gzsums.net:8888).
 
+## Citation
+He, S., Wang, LH., Liu, Y. et al. Single-cell transcriptome profiling of an adult human cell atlas of 15 major organs. Genome Biol 21, 294 (2020). https://doi.org/10.1186/s13059-020-02210-0
  
  
  

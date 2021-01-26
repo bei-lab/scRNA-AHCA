@@ -26,7 +26,7 @@ We developed an AHCA website for international users at [`http://research.gzsums
 He, S., Wang, LH., Liu, Y. et al. Single-cell transcriptome profiling of an adult human cell atlas of 15 major organs. Genome Biol 21, 294 (2020). https://doi.org/10.1186/s13059-020-02210-0
 
 ## Notes
-The files containing cell barcodes and corresponding annotation used in this study were uploaded to 'https://github.com/bei-lab/scRNA-AHCA/tree/master/Cell_barcode_and_corresponding_cell_types_of_AHCA' folder. The non-filtered raw counts matrix were also uploaded to 'https://github.com/bei-lab/scRNA-AHCA/upload/master/No_filtered_Raw_counts_matrix' folder. Please note that the cell barcodes of the raw count's matrix are not prefixed with corresponding tissue names, while it is easy to match cells in the raw counts matrix and annotation files manually.
+The files containing cell barcodes and corresponding annotation used in this study were uploaded to [`https://github.com/bei-lab/scRNA-AHCA/tree/master/Cell_barcode_and_corresponding_cell_types_of_AHCA`] folder. The non-filtered raw counts matrix were also uploaded to [`https://github.com/bei-lab/scRNA-AHCA/upload/master/No_filtered_Raw_counts_matrix`] folder. Please note that the cell barcodes of the raw count's matrix are not prefixed with corresponding tissue names, while it is easy to match cells in the raw counts matrix and annotation files manually.
  
  
  

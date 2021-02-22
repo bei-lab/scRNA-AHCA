@@ -1,3 +1,10 @@
+library(Seurat)
+library(dplyr)
+library(ggplot2)
+library(ggthemes)
+library(data.table)
+library(ggsci)
+library(monocle3)
 
 load("Tang_large_intestine.RData")
 orig <- subset_cells
@@ -51,7 +58,7 @@ get_earliest_principal_node <- function(cds, time_bin="Intermediate_Mon_CCL20"){
 cds <- order_cells(cds, root_pr_nodes=get_earliest_principal_node(cds))
 
 
-png("monocyte3_Rectum_psedutime_test.png", height = 10, width = 10, res = 400, units = "in")
+png("Rectum_psedutime_test.png", height = 10, width = 10, res = 400, units = "in")
 # pdf("monocyte3_Rectum_psedutime.pdf", height = 10, width = 10)
 plot_cells(cds,
            color_cells_by = "pseudotime",
@@ -63,7 +70,7 @@ plot_cells(cds,
 dev.off()
 
 
-png("monocyte3__Rectum_trajectory_annotation_test.png", height = 10, width = 10, res = 400, units = "in")
+png("Rectum_trajectory_annotation_test.png", height = 10, width = 10, res = 400, units = "in")
 # pdf("monocyte3__Rectum_trajectory_annotation.pdf", height = 10, width = 10)
 plot_cells(cds,
            color_cells_by = "annotation",
@@ -76,7 +83,7 @@ plot_cells(cds,
   scale_color_manual(values = eval(parse(text = color_used)))
 dev.off()
 
-png("monocyte3_Rectum_by_clusters_genes.png", height = 10, width = 20, res = 400, units = "in")
+png("Rectum_by_clusters_genes.png", height = 10, width = 20, res = 400, units = "in")
 plot_cells(cds,
            genes=c("MKI67", "PCNA"),
            label_cell_groups = FALSE,
